@@ -62,7 +62,7 @@ export async function report($: EngineInterface, text: string): Promise<string |
   const programDir = (await $.env.get('DEBRIEF_REPORT_DIR')) ?? join(p.sep, $.plugin.root, 'tools', 'debrief_report')
   const fixed = ['--root', p.root]
   if (sub === 'aar' || sub === 'backfill') {
-    const slug = slugOf(await $.session.cwd())
+    const slug = slugOf(await $.session.root())
     fixed.push('--project', slug, '--config', p.configDir)
     if (sub === 'backfill') fixed.push('--exclude-session', await $.session.id())
     else {
@@ -73,13 +73,13 @@ export async function report($: EngineInterface, text: string): Promise<string |
     }
   }
   // The program runs with the data root as cwd, so a relative --cards path is
-  // resolved against the session's working directory here.
+  // resolved against the session root here (the shell cwd moves with every cd).
   const cards = args.indexOf('--cards')
   const cardsPath = cards >= 0 ? args[cards + 1] : undefined
   if (cardsPath !== undefined && /^[A-Za-z]:(?![\\/])/.test(cardsPath)) return '허용되지 않은 인자입니다(드라이브 상대 경로). ' + REPORT_USAGE
   if (cardsPath !== undefined && !/^([\\/]|[A-Za-z]:[\\/])/.test(cardsPath)) {
-    const cwd = await $.session.cwd()
-    args[cards + 1] = join(sepOf(cwd), cwd, cardsPath)
+    const base = await $.session.root()
+    args[cards + 1] = join(sepOf(base), base, cardsPath)
   }
   const argv = [programDir, sub, ...fixed, ...args]
   const init = { cwd: p.root, timeoutMs: TIMEOUTS[sub] }

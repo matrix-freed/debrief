@@ -9,6 +9,8 @@ import type { DebriefRun } from '../types'
 export const ROOT = '/data/debrief'
 export const CWD = '/work/proj'
 export const SLUG = '-work-proj'
+// The shell's directory after an agent `cd`: never the project identity.
+export const SHELL_CWD = `${CWD}/sub/dir`
 
 export type Usage4 = { in: number; out: number; cacheRead: number; cacheWrite: number }
 
@@ -22,6 +24,7 @@ export type World = {
   ancestors: { dir: string; name: string; content: string; parts: [] }[]
   stepPlan: Map<string, { model: string; usage: Usage4 | null; tools?: { name: string; input: unknown }[] }>
   spawn: { model: string; agentId?: string; deny?: string }
+  root: string
 }
 
 export const world = (): World => ({
@@ -34,6 +37,7 @@ export const world = (): World => ({
   ancestors: [],
   stepPlan: new Map(),
   spawn: { model: 'm-sub', agentId: 'ag-1' },
+  root: CWD,
 })
 
 const parentOf = (path: string) => path.slice(0, path.lastIndexOf('/'))
@@ -67,7 +71,8 @@ export const install = (on: On, w: World, env: Record<string, string> = { HOME: 
   })
   on('fs.ancestors', () => ({ value: w.ancestors }))
   on('session.id', () => ({ value: w.sessionId }))
-  on('session.cwd', () => ({ value: CWD }))
+  on('session.cwd', () => ({ value: SHELL_CWD }))
+  on('session.root', () => ({ value: w.root }))
   on('session.surface', () => ({ value: w.isInteractive ? ('terminal' as const) : null }))
   on('session.version', () => ({ value: { version: '2.1.300' } }))
   on('session.usage', () => ({ value: { startedAt: 1_000_000, context: { window: 200000 }, rateLimits: [], cost: { usd: w.usd } } }))
