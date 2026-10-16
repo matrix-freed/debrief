@@ -93,8 +93,9 @@ export async function report($: EngineInterface, text: string): Promise<string |
       return 'python3가 필요합니다 — 설치 안내: https://www.python.org/downloads/'
     }
   }
+  // On failure show the program's RESULT line (its error field) and up to 20 stderr lines.
   const lines = result.exitCode !== 0
-    ? [`실패(exit ${result.exitCode})`, ...result.stderr.split(/\r?\n/).slice(0, 20)]
+    ? [`실패(exit ${result.exitCode})`, ...result.stdout.split(/\r?\n/).filter(line => line.startsWith('RESULT ')), ...result.stderr.split(/\r?\n/).filter(line => line !== '').slice(0, 20)]
     : result.stdout.split(/\r?\n/).filter(line => line.startsWith('RESULT '))
   if (result.exitCode === 0 && lines.length === 0) lines.push('완료했으나 RESULT 줄이 없습니다.')
   if (result.isStdoutTruncated) lines.push('출력 잘림')

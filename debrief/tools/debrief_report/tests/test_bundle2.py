@@ -128,6 +128,17 @@ class ReportTests(unittest.TestCase):
         self.assertIn(['압축', 3, '3건 시각 미수집'], timeline['rows'])
         self.assertIn(['중단', 2, '1건 시각 미수집'], timeline['rows'])
 
+    def test_a_run_file_being_written_is_skipped_not_fatal(self):
+        # 실행 중인 세션이 기록 파일을 통째로 다시 쓰는 사이에 읽으면 JSON이 잘린다.
+        broken = self.root/'runs'/self.slug/'live-session'/'1.json'
+        broken.parent.mkdir(parents=True)
+        broken.write_text('{"schema": 3, "run": {"startedAt": 1, "ended')
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            _, data, result = self.aar()
+        self.assertIn('건너뜁니다', stderr.getvalue())
+        self.assertEqual(result['processed'], 966)
+
     def test_language_follows_the_profile_then_the_locale(self):
         _, data, _ = self.aar(profile=True)
         self.assertEqual(data['language'], 'ko')

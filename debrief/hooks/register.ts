@@ -636,6 +636,8 @@ export const register: Register = on => {
       await flush($)
       return { text: `phase tagged "${label}".` }
     }
+    // Write this session's run file before the report program reads the runs folder.
+    await flush($)
     return { text: (await report($, args)) ?? REPORT_USAGE }
   })
 
