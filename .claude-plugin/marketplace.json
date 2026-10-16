@@ -8,7 +8,7 @@
     {
       "name": "debrief",
       "source": "./debrief",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "description": "Records metadata-only session telemetry (tokens per model and loop, turns, agents, friction) and builds project after-action reviews.",
       "license": "MIT"
     }
