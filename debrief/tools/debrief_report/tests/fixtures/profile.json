@@ -1,0 +1,30 @@
+{
+ "version": 1,
+ "language": "ko",
+ "aarUse": "project",
+ "shareConsent": false,
+ "thresholdStyle": "conservative",
+ "mainLane": "lead",
+ "lanes": {
+  "general-purpose": "helper",
+  "explorer": "scout"
+ },
+ "externalAgentTypes": [
+  "example:external"
+ ],
+ "directives": [],
+ "machines": [],
+ "limits": {
+  "byteBudget": 3145728,
+  "stepRing": 2000,
+  "turnRing": 1000,
+  "checkpointMs": 30000
+ },
+ "topModels": [
+  "big"
+ ],
+ "projects": {
+  "-tmp-proj-alpha": "알파",
+  "-tmp-proj-beta": "베타"
+ }
+}

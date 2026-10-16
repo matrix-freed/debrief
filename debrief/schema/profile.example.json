@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "language": "en",
+  "aarUse": "project",
+  "shareConsent": false,
+  "thresholdStyle": "conservative",
+  "mainLane": "lead",
+  "lanes": { "general-purpose": "helper" },
+  "externalAgentTypes": ["example-plugin:external-agent"],
+  "directives": [{ "label": "remote-lane", "pattern": "ssh\\s+\\S+.*tmux\\s+send-keys" }],
+  "machines": [],
+  "limits": { "byteBudget": 3145728, "stepRing": 2000, "turnRing": 1000, "checkpointMs": 30000 }
+}

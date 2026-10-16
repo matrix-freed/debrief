@@ -1,0 +1,19 @@
+{
+ "session_id": "aaaaaaaa-0000-4000-8000-000000000001",
+ "underlying_goal": "FORBIDDEN-MARKER-GOAL",
+ "goal_categories": {
+  "FORBIDDEN-MARKER-GOALCAT": 1
+ },
+ "outcome": "fully_achieved",
+ "user_satisfaction_counts": {
+  "likely_satisfied": 1
+ },
+ "claude_helpfulness": "very_helpful",
+ "session_type": "single_task",
+ "friction_counts": {
+  "wrong_approach": 1
+ },
+ "friction_detail": "FORBIDDEN-MARKER-DETAIL",
+ "primary_success": "FORBIDDEN-MARKER-SUCCESS",
+ "brief_summary": "FORBIDDEN-MARKER-BRIEF"
+}

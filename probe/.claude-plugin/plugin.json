@@ -1,0 +1,7 @@
+{
+  "name": "debrief-probe",
+  "version": "0.0.1",
+  "author": { "name": "debrief" },
+  "description": "Throwaway P0 probe: records session metadata only (no text) to verify mod API assumptions.",
+  "types": "./types/index.d.ts"
+}

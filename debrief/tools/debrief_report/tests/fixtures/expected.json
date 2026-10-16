@@ -1,0 +1,320 @@
+{
+ "_note": "Hand-computed by the spec author from the fixture lines. processed = in + cacheWrite + out. requests = steps - nullUsageSteps. auxProcessed = max(0, ledger processed - request processed) per model; ledgerLag marks a negative difference. Do not edit to make an implementation pass; report a disagreement instead.",
+ "now": "2026-10-14T00:00:00Z",
+ "mtimes": {
+  "F1": "now-2d",
+  "F2": "now-2d",
+  "F3": "now-2d",
+  "F4": "now-1min"
+ },
+ "backfill": {
+  "found": 4,
+  "closed": 3,
+  "written": 3,
+  "skipped": [
+   {
+    "session": "aaaaaaaa-0000-4000-8000-000000000004",
+    "reason": "open"
+   }
+  ]
+ },
+ "sessions": {
+  "aaaaaaaa-0000-4000-8000-000000000001": {
+   "config": "cfg-a",
+   "endReason": "closed",
+   "surface": "cli",
+   "isInteractive": true,
+   "startedAt": "2026-10-10T01:00:00.000Z",
+   "endedAt": "2026-10-10T02:00:00.000Z",
+   "usage": {
+    "main": {
+     "claude-test-big": {
+      "in": 15,
+      "out": 50,
+      "cacheRead": 300,
+      "cacheWrite": 50,
+      "steps": 2,
+      "nullUsageSteps": 0
+     },
+     "claude-test-small": {
+      "in": 3,
+      "out": 7,
+      "cacheRead": 50,
+      "cacheWrite": 20,
+      "steps": 2,
+      "nullUsageSteps": 1
+     }
+    }
+   },
+   "effort": {
+    "claude-test-big": {
+     "high": 2
+    },
+    "claude-test-small": {
+     "low": 2
+    }
+   },
+   "requestedToolCalls": {
+    "main": {
+     "Bash": 2,
+     "Read": 1
+    }
+   },
+   "friction": {
+    "aborted": 0,
+    "toolErrors": 1,
+    "rejected": 0,
+    "compactions": 0
+   },
+   "cost": {
+    "usdAtStart": 0,
+    "usdAtEnd": 0.15,
+    "provenance": "engine-ledger"
+   },
+   "ledger": {
+    "groups": 2,
+    "models": {
+     "claude-test-big": {
+      "in": 15,
+      "out": 50,
+      "cacheRead": 300,
+      "cacheWrite": 50,
+      "usd": 0.08
+     },
+     "claude-test-small": {
+      "in": 103,
+      "out": 47,
+      "cacheRead": 50,
+      "cacheWrite": 20,
+      "usd": 0.07
+     }
+    }
+   },
+   "auxProcessed": {
+    "claude-test-big": 0,
+    "claude-test-small": 140
+   },
+   "processed": {
+    "claude-test-big": 115,
+    "claude-test-small": 30
+   },
+   "coverage": "complete",
+   "attribution": {
+    "-tmp-proj-alpha": {
+     "steps": 4,
+     "processed": 145
+    }
+   }
+  },
+  "aaaaaaaa-0000-4000-8000-000000000002": {
+   "config": "cfg-a",
+   "endReason": "closed",
+   "surface": "sdk-cli",
+   "isInteractive": false,
+   "startedAt": "2026-10-11T02:00:00.000Z",
+   "endedAt": "2026-10-11T02:05:00.000Z",
+   "usage": {
+    "main": {
+     "claude-test-big": {
+      "in": 5,
+      "out": 8,
+      "cacheRead": 1500,
+      "cacheWrite": 100,
+      "steps": 2,
+      "nullUsageSteps": 0
+     }
+    },
+    "a1": {
+     "claude-test-small": {
+      "in": 9,
+      "out": 11,
+      "cacheRead": 13,
+      "cacheWrite": 15,
+      "steps": 2,
+      "nullUsageSteps": 0
+     }
+    }
+   },
+   "effort": {
+    "claude-test-big": {
+     "medium": 1,
+     "none": 1
+    },
+    "claude-test-small": {
+     "none": 2
+    }
+   },
+   "requestedToolCalls": {
+    "main": {
+     "Agent": 1
+    },
+    "a1": {
+     "Grep": 1
+    }
+   },
+   "friction": {
+    "aborted": 1,
+    "toolErrors": 1,
+    "rejected": 1,
+    "compactions": 1
+   },
+   "cost": {
+    "usdAtStart": 0,
+    "usdAtEnd": 0.3,
+    "provenance": "engine-ledger"
+   },
+   "ledger": {
+    "groups": 1,
+    "models": {
+     "claude-test-big": {
+      "in": 5,
+      "out": 8,
+      "cacheRead": 1500,
+      "cacheWrite": 100,
+      "usd": 0.25
+     },
+     "claude-test-small": {
+      "in": 7,
+      "out": 8,
+      "cacheRead": 9,
+      "cacheWrite": 10,
+      "usd": 0.05
+     }
+    }
+   },
+   "auxProcessed": {
+    "claude-test-big": 0,
+    "claude-test-small": 0
+   },
+   "ledgerLag": {
+    "claude-test-small": true
+   },
+   "agents": {
+    "a1": {
+     "subagentType": "general-purpose",
+     "model": "claude-test-small",
+     "firstSeenAt": "2026-10-11T02:01:00.000Z",
+     "durationMs": 120000
+    }
+   },
+   "processed": {
+    "claude-test-big": 113,
+    "claude-test-small": 35
+   },
+   "coverage": "complete"
+  },
+  "aaaaaaaa-0000-4000-8000-000000000003": {
+   "config": "cfg-b",
+   "endReason": "idle",
+   "surface": "cli",
+   "isInteractive": true,
+   "startedAt": "2026-10-12T03:00:00.000Z",
+   "endedAt": "2026-10-12T03:30:00.000Z",
+   "usage": {
+    "main": {
+     "claude-test-big": {
+      "in": 110,
+      "out": 220,
+      "cacheRead": 30,
+      "cacheWrite": 340,
+      "steps": 2,
+      "nullUsageSteps": 0
+     },
+     "claude-test-small": {
+      "in": 1,
+      "out": 1,
+      "cacheRead": 1,
+      "cacheWrite": 1,
+      "steps": 1,
+      "nullUsageSteps": 0
+     }
+    }
+   },
+   "effort": {
+    "claude-test-big": {
+     "high": 2
+    },
+    "claude-test-small": {
+     "high": 1
+    }
+   },
+   "friction": {
+    "aborted": 0,
+    "toolErrors": 0,
+    "rejected": 0,
+    "compactions": 0
+   },
+   "cost": {
+    "provenance": "unknown"
+   },
+   "badLines": 1,
+   "coverage": "partial",
+   "processed": {
+    "claude-test-big": 670,
+    "claude-test-small": 3
+   },
+   "attribution": {
+    "-tmp-proj-alpha": {
+     "steps": 1,
+     "processed": 600
+    },
+    "-tmp-proj-beta": {
+     "steps": 2,
+     "processed": 73
+    }
+   }
+  }
+ },
+ "project": {
+  "sessions": 3,
+  "processed": 966,
+  "cacheRead": 1894,
+  "requests": 10,
+  "usdTotal": 0.45,
+  "byModelProcessed": {
+   "claude-test-big": 898,
+   "claude-test-small": 68
+  }
+ },
+ "codex": {
+  "runs": 1,
+  "matchedSessionIndex": "S2",
+  "model": "ext-model-1",
+  "requests": 2,
+  "tokens": {
+   "input": 1500,
+   "cached": 900,
+   "output": 70,
+   "reasoning": 10,
+   "processed": 670
+  },
+  "startedAt": "2026-10-11T02:00:10.000Z",
+  "endedAt": "2026-10-11T02:04:00.000Z"
+ },
+ "insights": {
+  "aaaaaaaa-0000-4000-8000-000000000001": {
+   "meta": {
+    "tool_errors": 1,
+    "user_interruptions": 0,
+    "duration_minutes": 60
+   },
+   "facets": {
+    "outcome": "fully_achieved",
+    "friction_counts": {
+     "wrong_approach": 1
+    }
+   }
+  }
+ },
+ "overlap": {
+  "mod-runs": {
+   "compared": 1,
+   "diffs": 0
+  },
+  "mod-runs-diff": {
+   "compared": 1,
+   "diffs": 1
+  }
+ },
+ "forbiddenMarker": "FORBIDDEN-MARKER-"
+}

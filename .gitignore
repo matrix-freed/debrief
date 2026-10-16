@@ -1,0 +1,26 @@
+# local-only working data (never published)
+.local/
+.remember/
+.DS_Store
+node_modules/
+dist/
+
+# debrief run files, backfill output, real transcripts and AARs
+data/
+_backfill/
+*.jsonl
+*.aar.html
+
+# profiles with real names, paths or thresholds stay local
+profiles/local/
+profile.local.json
+
+# local plugin install state (marketplace + enable, machine specific)
+.claude/settings.local.json
+
+# synthetic test fixtures only (no real data)
+!debrief/tools/debrief_report/tests/fixtures/**/*.jsonl
+
+# python bytecode
+__pycache__/
+*.pyc

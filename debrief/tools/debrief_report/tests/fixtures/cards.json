@@ -1,0 +1,57 @@
+{
+ "version": 1,
+ "title": "합성 프로젝트 알파",
+ "cards": [
+  {
+   "k": "plan",
+   "title": "계획",
+   "body": "픽스처 계획 문단.",
+   "evidence": [
+    "SPEC-P2.md 11절"
+   ]
+  },
+  {
+   "k": "actual",
+   "title": "실제",
+   "body": "픽스처 실제 문단.\n\n두 번째 문단 <b>escape</b>."
+  },
+  {
+   "k": "gap",
+   "title": "차이",
+   "body": "픽스처 차이 문단."
+  },
+  {
+   "k": "improve",
+   "title": "개선",
+   "body": "픽스처 개선 문단."
+  }
+ ],
+ "improvements": [
+  {
+   "title": "긴 세션의 단순 조회를 서브에이전트로 분리",
+   "lever": "template",
+   "target": "작업 템플릿",
+   "metric": "메인 루프 처리 토큰 비중",
+   "what": "단순 조회 위임 규칙 추가",
+   "where": "프로젝트 작업 템플릿",
+   "how": "조회 단계에 서브에이전트 호출 줄 추가",
+   "verify": "다음 AAR에서 메인 비중 감소",
+   "evidence": [
+    "S1 처리 토큰"
+   ]
+  },
+  {
+   "title": "도구 오류 반복 점검 훅",
+   "lever": "hook",
+   "target": "PostToolUseFailure 훅",
+   "metric": "도구 오류율",
+   "what": "오류 유형 집계 훅",
+   "where": "프로젝트 설정",
+   "how": "훅 추가",
+   "verify": "오류율 비교",
+   "evidence": [
+    "S2 마찰"
+   ]
+  }
+ ]
+}

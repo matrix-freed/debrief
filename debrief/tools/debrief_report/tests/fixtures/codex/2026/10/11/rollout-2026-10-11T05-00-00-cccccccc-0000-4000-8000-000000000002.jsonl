@@ -1,0 +1,2 @@
+{"timestamp": "2026-10-11T05:00:00.000Z", "type": "session_meta", "payload": {"id": "cccccccc-0000-4000-8000-000000000002", "cwd": "/tmp/other", "originator": "codex_exec", "source": "exec"}}
+{"timestamp": "2026-10-11T05:01:00.000Z", "type": "token_usage_record", "payload": {"response_id": "resp_9", "turn_id": "t", "usage": {"input_tokens": 9999, "cached_input_tokens": 0, "cache_write_input_tokens": 0, "output_tokens": 9999, "reasoning_output_tokens": 0, "total_tokens": 19998}}}

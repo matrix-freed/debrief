@@ -1,0 +1,9 @@
+{
+ "agentType": "general-purpose",
+ "launchedWithDefaults": true,
+ "description": "FORBIDDEN-MARKER-DESCRIPTION",
+ "toolUseId": "toolu_f2_a",
+ "spawnDepth": 1,
+ "requestShape": "FORBIDDEN-MARKER-SHAPE",
+ "requestNonInteractive": false
+}

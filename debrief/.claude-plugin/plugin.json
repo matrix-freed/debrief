@@ -1,0 +1,10 @@
+{
+  "name": "debrief",
+  "version": "0.1.0",
+  "description": "Records metadata-only session telemetry (tokens per model and loop, turns, agents, friction) for project after-action reviews.",
+  "author": {
+    "name": "debrief"
+  },
+  "types": "./types/index.d.ts",
+  "license": "MIT"
+}

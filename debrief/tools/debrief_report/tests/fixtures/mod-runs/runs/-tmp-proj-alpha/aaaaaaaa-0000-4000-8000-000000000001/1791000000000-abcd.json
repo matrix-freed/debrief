@@ -1,0 +1,138 @@
+{
+ "schema": 3,
+ "recorder": "debrief/0.1.0",
+ "engine": "2.1.300",
+ "source": "mod",
+ "project": {
+  "slug": "-tmp-proj-alpha"
+ },
+ "sessionId": "aaaaaaaa-0000-4000-8000-000000000001",
+ "runId": "1791000000000-abcd",
+ "run": {
+  "startedAt": 1791594000000.0,
+  "endedAt": 1791597601000.0,
+  "endReason": "other",
+  "surface": "cli",
+  "isInteractive": true,
+  "reloads": 0,
+  "lastCheckpointAt": 1791597601000.0,
+  "coverage": "complete",
+  "dropped": {
+   "steps": 0,
+   "turns": 0,
+   "agents": 0
+  }
+ },
+ "usage": {
+  "main": {
+   "claude-test-big": {
+    "in": 15,
+    "out": 50,
+    "cacheRead": 300,
+    "cacheWrite": 50,
+    "steps": 2,
+    "nullUsageSteps": 0
+   },
+   "claude-test-small": {
+    "in": 3,
+    "out": 7,
+    "cacheRead": 50,
+    "cacheWrite": 20,
+    "steps": 2,
+    "nullUsageSteps": 1
+   }
+  }
+ },
+ "effort": {
+  "claude-test-big": {
+   "high": 2
+  },
+  "claude-test-small": {
+   "low": 2
+  }
+ },
+ "steps": [],
+ "turns": [
+  {
+   "loop": "main",
+   "turnId": "t1",
+   "startedAt": 1791594000000.0,
+   "durationMs": 60000,
+   "reason": "end_turn",
+   "aborted": false,
+   "tag": "phase-a"
+  }
+ ],
+ "openTurns": {},
+ "cost": {
+  "usdAtStart": 0,
+  "usdAtEnd": 0.15,
+  "at": 1791597601000.0,
+  "provenance": "engine-ledger"
+ },
+ "context": {},
+ "agents": {},
+ "spawnDenied": 0,
+ "workflowRuns": [],
+ "requestedToolCalls": {
+  "main": {
+   "Bash": 2,
+   "Read": 1
+  }
+ },
+ "serverToolUses": {},
+ "toolCalls": {
+  "main": 3,
+  "agent": 0,
+  "isError": 1,
+  "denied": 0,
+  "reentry": {}
+ },
+ "classic": {
+  "seen": true,
+  "sessionStartSources": [
+   "startup"
+  ],
+  "postToolUseFailures": 1,
+  "interrupts": 0,
+  "compactions": 0
+ },
+ "friction": {
+  "aborted": 0,
+  "toolErrors": 1,
+  "rejected": 0,
+  "compactions": 0
+ },
+ "skills": {},
+ "commands": {},
+ "messaging": {
+  "sent": {},
+  "received": {}
+ },
+ "delegation": {
+  "external": {},
+  "directives": {}
+ },
+ "tags": [
+  {
+   "label": "phase-a",
+   "at": 1791594000000.0,
+   "turnIndex": 0
+  }
+ ],
+ "instructions": [
+  {
+   "memoryType": "Project",
+   "loadReason": "session_start",
+   "pathHash": "1111111111111111",
+   "contentHash": "aaaaaaaaaaaaaaaa",
+   "bytes": 100,
+   "mtimeMs": 0
+  }
+ ],
+ "profileSource": "default",
+ "writes": {
+  "ok": 3,
+  "failed": 0
+ }
+}

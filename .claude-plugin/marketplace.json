@@ -1,0 +1,16 @@
+{
+  "name": "debrief",
+  "owner": { "name": "matrix-freed" },
+  "metadata": {
+    "description": "debrief: metadata-only session telemetry and project after-action reviews for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "debrief",
+      "source": "./debrief",
+      "version": "0.1.0",
+      "description": "Records metadata-only session telemetry (tokens per model and loop, turns, agents, friction) and builds project after-action reviews.",
+      "license": "MIT"
+    }
+  ]
+}
