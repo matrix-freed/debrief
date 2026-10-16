@@ -5,7 +5,7 @@ import type { DebriefInstruction, DebriefProfile, DebriefRun } from '../types'
 import { readInsights } from './insights'
 import { join, places, profileFile, runFile, sessionDir, slugOf } from './paths'
 import type { Places } from './paths'
-import { DEFAULT_PROFILE, directiveLabels, normalizeProfile } from './profile'
+import { DEFAULT_PROFILE, directiveLabels, localeLanguage, normalizeProfile } from './profile'
 import { report, REPORT_HINT, REPORT_USAGE } from './report'
 import {
   addInstruction,
@@ -313,57 +313,74 @@ const sessionSummary = async ($: $): Promise<string> => {
 
 // `/debrief setup`: show what was detected, ask what cannot be detected
 // (six questions at most), save the profile to the store and the profile file.
+// The language question comes first; the rest of the dialogue follows it.
+// Before that answer, the terminal locale decides (LC_ALL, then LANG).
 const setup = async ($: $): Promise<string> => {
   const run = await read($, RUN)
-  if (run === null || !run.run.isInteractive) return 'setup needs an interactive session; skipped.'
+  let lang = localeLanguage((await $.env.get('LC_ALL')) || (await $.env.get('LANG')))
+  const t = (ko: string, en: string) => (lang === 'ko' ? ko : en)
+  if (run === null || !run.run.isInteractive) return t('setup은 대화형 세션에서만 됩니다. 건너뜁니다(skipped).', 'setup needs an interactive session; skipped.')
   const p = await where($)
   const insights = await readInsights($, p)
   const models = Object.keys(Object.assign({}, ...Object.values(run.usage)))
   const os = p.sep === '\\' ? 'Windows' : 'macOS/Linux'
-  const detected = [
-    `system ${os}`,
-    `models this session: ${models.length > 0 ? models.join(', ') : 'none yet'}`,
-    `subagents this session: ${Object.keys(run.agents).length}`,
-    insights.available ? `${insights.sessions} recent sessions on file, ${insights.taskAgentSessions} used subagents` : 'no /insights data found',
-  ].join('; ')
   const next: DebriefProfile = structuredClone(profile)
+  // Each option is [stored value, Korean label, English label]; the answer maps back to the value.
+  const choose = async (ko: string, en: string, header: string, choices: readonly (readonly [string, string, string])[]): Promise<string> => {
+    const labels = choices.map(c => t(c[1], c[2]))
+    const answer = await $.ui.ask(t(ko, en), { options: labels, header })
+    return choices.find(c => t(c[1], c[2]) === answer)?.[0] ?? answer
+  }
   try {
-    const keep = await $.ui.ask(`debrief detected: ${detected}. Keep the current profile as the starting point?`, {
-      options: ['Keep', 'Start neutral'],
-      header: 'debrief',
-    })
-    if (keep === 'Start neutral') Object.assign(next, structuredClone(DEFAULT_PROFILE))
-    const language = await $.ui.ask('Which language should reports use?', { options: ['en', 'ko'], header: 'Language' })
-    if (language === 'en' || language === 'ko') next.language = language
-    const use = await $.ui.ask('What are the after-action reviews mainly for?', { options: ['personal', 'project', 'team'], header: 'AAR use' })
+    const language = await choose('debrief의 보고서와 안내 언어를 고르세요.', 'Which language should debrief use for reports and prompts?', 'debrief',
+      lang === 'ko' ? [['ko', '한국어', 'Korean'], ['en', 'English', 'English']] : [['en', 'English', 'English'], ['ko', '한국어', 'Korean']])
+    if (language === 'en' || language === 'ko') {
+      lang = language
+      next.language = language
+    }
+    const detected = [
+      t(`시스템 ${os}`, `system ${os}`),
+      t(`이 세션의 모델: ${models.length > 0 ? models.join(', ') : '아직 없음'}`, `models this session: ${models.length > 0 ? models.join(', ') : 'none yet'}`),
+      t(`이 세션의 서브에이전트: ${Object.keys(run.agents).length}개`, `subagents this session: ${Object.keys(run.agents).length}`),
+      insights.available
+        ? t(`최근 세션 기록 ${insights.sessions}개, 그중 서브에이전트 사용 ${insights.taskAgentSessions}개`, `${insights.sessions} recent sessions on file, ${insights.taskAgentSessions} used subagents`)
+        : t('/insights 데이터 없음', 'no /insights data found'),
+    ].join('; ')
+    const keep = await choose(`debrief가 감지한 것: ${detected}. 현재 프로필을 출발점으로 둘까요?`, `debrief detected: ${detected}. Keep the current profile as the starting point?`, 'debrief',
+      [['keep', '유지', 'Keep'], ['neutral', '초기화', 'Start neutral']])
+    if (keep === 'neutral') Object.assign(next, structuredClone(DEFAULT_PROFILE), { language: next.language })
+    const use = await choose('AAR은 주로 무엇에 쓰나요?', 'What are the after-action reviews mainly for?', t('AAR 용도', 'AAR use'),
+      [['personal', '개인', 'personal'], ['project', '프로젝트', 'project'], ['team', '팀', 'team']])
     if (use === 'personal' || use === 'project' || use === 'team') next.aarUse = use
-    const share = await $.ui.ask('May reports you pick be exported to share? (records stay on this machine either way)', {
-      options: ['No', 'Yes'],
-      header: 'Sharing',
-    })
-    next.shareConsent = share === 'Yes'
-    const style = await $.ui.ask('How eager should hypothesis cards be?', { options: ['conservative', 'standard'], header: 'Thresholds' })
+    const share = await choose('직접 고른 보고서를 공유용으로 내보내도 될까요? (기록은 어느 쪽이든 이 기기에만 남습니다)',
+      'May reports you pick be exported to share? (records stay on this machine either way)', t('공유', 'Sharing'),
+      [['no', '아니요', 'No'], ['yes', '예', 'Yes']])
+    next.shareConsent = share === 'yes'
+    const style = await choose('가설 카드를 얼마나 적극적으로 띄울까요?', 'How eager should hypothesis cards be?', t('임계값', 'Thresholds'),
+      [['conservative', '보수적', 'conservative'], ['standard', '표준', 'standard']])
     if (style === 'conservative' || style === 'standard') next.thresholdStyle = style
-    const lane = await $.ui.ask('What do you call your main session lane? Type a name under Other, or skip.', {
-      options: ['main', 'Skip'],
-      header: 'Main lane',
+    const skip = t('건너뛰기', 'Skip')
+    const lane = await $.ui.ask(t('메인 세션 레인을 무엇이라 부르나요? 기타(Other)에 이름을 적거나 건너뛰세요.', 'What do you call your main session lane? Type a name under Other, or skip.'), {
+      options: ['main', skip],
+      header: t('메인 레인', 'Main lane'),
     })
-    if (lane !== 'Skip' && lane.trim() !== '') next.mainLane = lane.trim().slice(0, 40)
+    if (lane !== skip && lane.trim() !== '') next.mainLane = lane.trim().slice(0, 40)
   } catch {
-    return 'setup cancelled; the profile is unchanged.'
+    return t('setup을 취소했습니다. 프로필은 그대로입니다.', 'setup cancelled; the profile is unchanged.')
   }
   try {
     await $.store.set('profile', next)
     await $.fs.write(profileFile(p), JSON.stringify(next, null, 2))
   } catch (error) {
-    return `setup could not save the profile (${errorName(error)}).`
+    return t(`setup이 프로필을 저장하지 못했습니다 (${errorName(error)}).`, `setup could not save the profile (${errorName(error)}).`)
   }
   profile = next
   profileSource = 'file'
   await mutate($, r => {
     r.profileSource = 'file'
   })
-  return 'profile saved. Edit lanes, directives and machines in the profile file; run /debrief setup again any time.'
+  return t('프로필을 저장했습니다. 레인·지시어·머신은 프로필 파일에서 고치고, /debrief setup은 언제든 다시 돌릴 수 있습니다.',
+    'profile saved. Edit lanes, directives and machines in the profile file; run /debrief setup again any time.')
 }
 
 export const register: Register = on => {

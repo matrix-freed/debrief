@@ -36,6 +36,20 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(code,0)
         self.slug = next((self.root/'_backfill').iterdir()).name
         self.out = self.base/'aar.html'
+        # 프로필 없는 보고서의 언어는 로케일을 따르므로 검사에서는 한국어로 고정한다.
+        self.locale(ko=True)
+
+    def locale(self, ko):
+        saved = {k: os.environ.get(k) for k in ('LC_ALL', 'LANG')}
+        def restore():
+            for k, v in saved.items():
+                if v is None:
+                    os.environ.pop(k, None)
+                else:
+                    os.environ[k] = v
+        self.addCleanup(restore)
+        os.environ.pop('LC_ALL', None)
+        os.environ['LANG'] = 'ko_KR.UTF-8' if ko else 'en_US.UTF-8'
 
     def invoke(self,*args):
         output = io.StringIO()
@@ -113,6 +127,20 @@ class ReportTests(unittest.TestCase):
         self.assertEqual([(r['role'], r['start']) for r in markers], [('tag', at), ('aborted', at + 1000)])
         self.assertIn(['압축', 3, '3건 시각 미수집'], timeline['rows'])
         self.assertIn(['중단', 2, '1건 시각 미수집'], timeline['rows'])
+
+    def test_language_follows_the_profile_then_the_locale(self):
+        _, data, _ = self.aar(profile=True)
+        self.assertEqual(data['language'], 'ko')
+        self.locale(ko=False)
+        _, data, _ = self.aar(profile=True)
+        self.assertEqual(data['language'], 'ko', '프로필의 언어가 로케일보다 앞선다')
+        _, data, _ = self.aar(profile=False)
+        self.assertEqual(data['language'], 'en')
+        self.assertEqual(data['sections'][1]['cards'][0]['title'], 'Processed tokens')
+        self.locale(ko=True)
+        _, data, _ = self.aar(profile=False)
+        self.assertEqual(data['language'], 'ko')
+        self.assertEqual(data['sections'][1]['cards'][0]['title'], '처리 토큰')
 
     def test_timeline_main_spans_follow_the_five_minute_gap_rule(self):
         _, data, _ = self.aar()

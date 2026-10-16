@@ -306,6 +306,26 @@ describe('commands, status, cost', () => {
     expect((await command($, 'debrief', 'setup')).text).toContain('skipped')
   })
 
+  test('setup speaks the terminal locale before a profile chooses: ko_KR answers Korean, LC_ALL wins', async ($, on) => {
+    const w = world()
+    w.isInteractive = false
+    install(on, w, { HOME: '/home/u', DEBRIEF_DIR: ROOT, LANG: 'ko_KR.UTF-8' }) // precheck: allow (fake home)
+    await start($, w)
+    const skipped = (await command($, 'debrief', 'setup')).text
+    expect(skipped).toContain('건너뜁니다')
+    expect(skipped).toContain('skipped')
+  })
+
+  test('setup falls back to English for a non-Korean locale and cancels in that language when nobody answers', async ($, on) => {
+    const w = world()
+    install(on, w, { HOME: '/home/u', DEBRIEF_DIR: ROOT, LC_ALL: 'en_US.UTF-8', LANG: 'ko_KR.UTF-8' }) // precheck: allow (fake home)
+    await start($, w)
+    // The harness fails every tool call, so the first question rejects and setup cancels.
+    const text = (await command($, 'debrief', 'setup')).text
+    expect(text).toContain('cancelled')
+    expect(w.files.has(`${ROOT}/profile.json`)).toBe(false)
+  })
+
   test('the status line shows totals and the main share, and cost keeps start and end', async ($, on) => {
     const w = world()
     w.usd = 1.5

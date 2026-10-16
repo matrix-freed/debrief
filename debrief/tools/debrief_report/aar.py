@@ -1,4 +1,5 @@
 """집계 메타데이터로 만드는 프로젝트 AAR."""
+import os
 import re
 import sys
 from collections import Counter, defaultdict
@@ -80,8 +81,13 @@ def build_report_data(root, slugs, configs=(), title=None, t0=None, t1=None, car
     if not slugs or not sessions:
         raise ValueError('프로젝트 또는 세션 없음')
     profile = profile or None
-    en = bool(profile and profile.get('language') == 'en')
-    language = 'en' if en else 'ko'
+    # 언어: 프로필이 정하면 그대로, 없으면 터미널 로케일(LC_ALL, LANG)이 ko_*일 때만 한국어.
+    if profile and profile.get('language') in ('en', 'ko'):
+        language = profile['language']
+    else:
+        locale = os.environ.get('LC_ALL') or os.environ.get('LANG') or ''
+        language = 'ko' if locale.strip().lower().startswith('ko') else 'en'
+    en = language == 'en'
     def tr(ko, eng):
         return eng if en else ko
     stamp_zone = zone(tz)
