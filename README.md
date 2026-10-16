@@ -34,7 +34,7 @@ project folder names never reach the HTML. Every report value passes an export a
 | Core recorder (mod) | `debrief/hooks/` | Writes `<root>/runs/<project>/<session>/<run>.json`. No vendor, machine, team or person names in code |
 | Report program | `debrief/tools/debrief_report/` | Python 3 standard library only. Backfill, AAR, summary, compaction, ledger |
 | Adapters (optional) | same program | External agent logs (Codex rollouts) and `/insights` data; silently skipped when absent |
-| Profile (optional) | `<root>/profile.json` | Language, lanes you declare, thresholds, external agent types. Built by `/debrief setup`. Never committed |
+| Profile (optional) | `<root>/profile.json` | Language, lanes you declare, thresholds, external agent types. Built by `/debrief setup`. Never committed. Without one, reports and the setup dialogue follow the terminal locale (`LC_ALL`, then `LANG`: `ko_*` is Korean, anything else English) |
 
 `<root>` is `DEBRIEF_DIR`, else `<CLAUDE_CONFIG_DIR or ~/.claude>/debrief`.
 
@@ -163,7 +163,7 @@ Claude Code mod다. **세션 메타데이터만**(모델, 토큰, 엔진 비용 
 | 코어 기록기(mod) | `debrief/hooks/` | `<root>/runs/<프로젝트>/<세션>/<run>.json`을 쓴다. 코드에 벤더·머신·팀·사람 이름 없음 |
 | 리포트 프로그램 | `debrief/tools/debrief_report/` | Python 3 표준 라이브러리만. 백필, AAR, 서머리, 압축, 장부 |
 | 어댑터(선택) | 같은 프로그램 | 외부 에이전트 로그(Codex rollout)와 `/insights` 데이터. 없으면 조용히 건너뜀 |
-| 프로필(선택) | `<root>/profile.json` | 언어, 직접 선언한 레인, 임계값, 외부 에이전트 유형. `/debrief setup`이 만든다. 저장소에 넣지 않는다 |
+| 프로필(선택) | `<root>/profile.json` | 언어, 직접 선언한 레인, 임계값, 외부 에이전트 유형. `/debrief setup`이 만든다. 저장소에 넣지 않는다. 프로필이 없으면 보고서와 setup 대화는 터미널 로케일(`LC_ALL`, 없으면 `LANG`: `ko_*`면 한국어, 그 외 영어)을 따른다 |
 
 `<root>`는 `DEBRIEF_DIR`, 없으면 `<CLAUDE_CONFIG_DIR 또는 ~/.claude>/debrief`.
 

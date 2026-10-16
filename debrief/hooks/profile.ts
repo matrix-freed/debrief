@@ -15,6 +15,10 @@ export const DEFAULT_PROFILE: DebriefProfile = {
   limits: { byteBudget: 3 * 1024 * 1024, stepRing: 2000, turnRing: 1000, checkpointMs: 30000 },
 }
 
+// Language from the terminal locale (LC_ALL, then LANG): ko_* answers ko,
+// anything else en. Used when no profile has chosen one.
+export const localeLanguage = (locale: string | undefined): 'en' | 'ko' => (/^ko/i.test((locale ?? '').trim()) ? 'ko' : 'en')
+
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 
 const pick = <T extends string>(v: unknown, allowed: readonly T[], fallback: T): T =>
