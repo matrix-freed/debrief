@@ -1,7 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 import type { ProcessRunInit } from 'claude-code'
 import { slugOf } from '../hooks/paths'
-import { CWD, ROOT, SLUG, command, install, start, world } from './kit'
+import { CWD, ROOT, SLUG, command, install, start, turn, world } from './kit'
 
 const OK = { exitCode: 0, stdout: '요약\nRESULT {"output":"/data/result.html"}\n', stderr: '', isStdoutTruncated: false, isStderrTruncated: false }
 const ENV = { HOME: '/home/u', DEBRIEF_DIR: ROOT, DEBRIEF_REPORT_DIR: '/program/report', CLAUDE_CONFIG_DIR: '/config' } // precheck: allow (fake home)
@@ -30,6 +30,25 @@ for (const sub of ['aar', 'backfill', 'compact', 'ledger']) {
     expect(result.text).toBe('RESULT {"output":"/data/result.html"}')
   })
 }
+
+test('aar는 이 세션의 기록 파일을 먼저 쓴 뒤 리포트 프로그램을 실행하고, 실패 때 RESULT 줄을 보여 준다', async ($, on) => {
+  const w = world()
+  install(on, w, ENV)
+  const seen: string[] = []
+  on('process.run', () => {
+    // At this moment the run file must be complete JSON that already holds the turn below.
+    const path = [...w.files.keys()].find(k => k.startsWith(`${ROOT}/runs/`))
+    seen.push(path === undefined ? 'missing' : JSON.parse(w.files.get(path) ?? '').turns.length)
+    return { value: { ...OK, exitCode: 2, stdout: 'RESULT {"error":"입력 또는 출력 오류","cause":"JSONDecodeError"}\n', stderr: 'JSONDecodeError: Unterminated string\n' } }
+  })
+  await start($, w)
+  await turn($, w, { turnId: 't1', steps: [{ model: 'm', usage: { in: 1, out: 1, cacheRead: 0, cacheWrite: 0 } }] })
+  const text = (await command($, 'debrief', 'aar')).text
+  expect(seen).toEqual([1])
+  expect(text).toContain('실패(exit 2)')
+  expect(text).toContain('JSONDecodeError')
+  expect(text).toContain('RESULT {"error"')
+})
 
 test('허용되지 않은 플래그와 잘못된 값은 실행하지 않는다', async ($, on) => {
   const w = world()

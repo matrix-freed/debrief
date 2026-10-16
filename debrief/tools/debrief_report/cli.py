@@ -110,8 +110,10 @@ def main(argv=None):
             result, code = compact(root, args.days, args.now, args.dry_run, args.delete_archives_before, args.yes)
     except SystemExit as exc:
         result, code = dict(error='사용법 오류'), exc.code
-    except (OSError, ValueError, TypeError, KeyError):
-        result, code = dict(error='입력 또는 출력 오류'), 2
+    except (OSError, ValueError, TypeError, KeyError) as exc:
+        # 원인 한 줄은 stderr로 — 래퍼가 실패 메시지에 그대로 붙인다(로컬 표시 전용).
+        print(f'{type(exc).__name__}: {exc}', file=sys.stderr)
+        result, code = dict(error='입력 또는 출력 오류', cause=type(exc).__name__), 2
     print('RESULT ' + json.dumps(result, ensure_ascii=False, allow_nan=False))
     return code
 

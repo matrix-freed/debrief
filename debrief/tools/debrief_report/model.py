@@ -1,4 +1,6 @@
 """세션 적재 및 중복 수집 대조."""
+import sys
+import time
 from pathlib import Path
 from paths import millis, read_json
 from transcript import COUNTERS
@@ -142,6 +144,18 @@ def rollup_record(summary, slug, sid):
                 run=dict(startedAt=summary['startedAt'], endedAt=summary['endedAt']))
 
 
+def read_run_file(path, attempts=3, wait=0.05):
+    """실행 중인 세션이 다시 쓰는 중인 기록 파일은 잠깐 뒤 다시 읽고, 그래도 깨져 있으면 건너뛴다."""
+    for attempt in range(attempts):
+        try:
+            return read_json(path)
+        except (OSError, ValueError):
+            if attempt + 1 < attempts:
+                time.sleep(wait)
+    print('경고: 읽을 수 없는 기록 파일을 건너뜁니다 (쓰는 중이거나 손상): ' + path.parent.parent.name + '/' + path.parent.name, file=sys.stderr)
+    return None
+
+
 def project_records(root, slugs=()):
     """출처 우선순위를 유지하면서 부분 압축된 같은 출처의 run도 보존한다."""
     root = Path(root)
@@ -158,7 +172,9 @@ def project_records(root, slugs=()):
             slug, sid = path.parent.parent.name, path.parent.name
             if slugs and slug not in slugs:
                 continue
-            record = read_json(path)
+            record = read_run_file(path)
+            if record is None:
+                continue
             record['source'] = 'mod' if source == 'runs' else 'backfill'
             raw.setdefault((slug,sid), []).append(record)
     selected = {}
