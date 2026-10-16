@@ -194,7 +194,8 @@ const newRun = async ($: $, surface: string | null, isInteractive: boolean, rota
     runId: `${now}-${hex4()}`,
     now,
     engine: (await $.session.version()).version,
-    slug: slugOf(await $.session.cwd()),
+    // The session root, not the shell cwd: a `cd` the agent runs must not move the record.
+    slug: slugOf(await $.session.root()),
     projectId: (await $.env.get('DEBRIEF_PROJECT')) ?? undefined,
     parentSessionId: (await $.env.get('DEBRIEF_PARENT_SESSION')) ?? undefined,
     surface,
@@ -390,7 +391,11 @@ export const register: Register = on => {
       await loadProfile($, p)
       const sid = await $.session.id()
       const current = await read($, RUN)
-      if (current !== null && current.sessionId === sid && current.run.endedAt === undefined) {
+      const slug = slugOf(await $.session.root())
+      const sameSession = current !== null && current.sessionId === sid && current.run.endedAt === undefined
+      // A reload under a changed root (or a record keyed by an old cwd) starts a
+      // new run under the root's slug; the old run keeps what it has.
+      if (sameSession && current.project.slug === slug) {
         writes.ok = current.writes.ok
         writes.failed = current.writes.failed
         live = liveOf(current)
@@ -400,7 +405,7 @@ export const register: Register = on => {
       } else {
         // Install the run first, then fingerprint: events that arrive meanwhile
         // land on the installed run, not in a buffer nobody drains (Codex review 5).
-        const run = await newRun($, e.surface, e.isInteractive)
+        const run = await newRun($, e.surface, e.isInteractive, sameSession ? current.runId : undefined)
         applyEarly(run)
         await $.state.set(RUN_REF, run)
         live = liveOf(run)

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'claude-code/testing'
 
-import { ROOT, SLUG, SPAWN, command, install, only, rawFiles, runFiles, start, step, turn, world } from './kit'
+import { CWD, ROOT, SLUG, SPAWN, command, install, only, rawFiles, runFiles, start, step, turn, world } from './kit'
 
 const U = (inN: number, out: number, cr: number, cw: number) => ({ in: inN, out, cacheRead: cr, cacheWrite: cw })
 const USAGE = (u: ReturnType<typeof U>, steps: number, nullUsageSteps = 0) => ({ ...u, steps, nullUsageSteps })
@@ -149,6 +149,33 @@ describe('runs and files', () => {
     const run = only(w)
     expect(run.run.reloads).toBe(1)
     expect(run.usage).toEqual({ main: { m: USAGE(U(2, 2, 2, 2), 2) } })
+  })
+
+  test('the project slug follows the session root, not the shell cwd', async ($, on) => {
+    const w = world()
+    install(on, w)
+    await start($, w)
+    await turn($, w, { turnId: 't1', steps: [{ model: 'm', usage: U(1, 1, 1, 1) }] })
+    expect(only(w).project.slug).toBe(SLUG)
+    expect([...w.files.keys()].some(k => k.startsWith(`${ROOT}/runs/${SLUG}/sess-1/`))).toBe(true)
+  })
+
+  test('a reload under a changed root starts a new run under the root slug', async ($, on) => {
+    const w = world()
+    w.root = '/work/old'
+    install(on, w)
+    await start($, w)
+    await turn($, w, { turnId: 't1', steps: [{ model: 'm', usage: U(1, 1, 1, 1) }] })
+    w.root = CWD
+    await start($, w)
+    await turn($, w, { turnId: 't2', steps: [{ model: 'm', usage: U(1, 1, 1, 1) }] })
+    const runs = runFiles(w)
+    const old = runs.find(r => r.project.slug === '-work-old')
+    const fresh = runs.find(r => r.project.slug === SLUG)
+    expect(runs.length).toBe(2)
+    expect(fresh?.run.rotatedFrom).toBe(old?.runId)
+    expect(fresh?.usage).toEqual({ main: { m: USAGE(U(1, 1, 1, 1), 1) } })
+    expect([...w.files.keys()].some(k => k.startsWith(`${ROOT}/runs/${SLUG}/sess-1/`))).toBe(true)
   })
 
   test('a failed write is counted and the next write carries everything', async ($, on) => {
