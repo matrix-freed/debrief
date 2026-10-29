@@ -643,7 +643,8 @@ export const register: Register = on => {
     }
     // Write this session's run file before the report program reads the runs folder.
     await flush($)
-    return { text: (await report($, args)) ?? REPORT_USAGE }
+    const isInteractive = (await read($, RUN))?.run.isInteractive === true
+    return (await report($, args, e.origin, isInteractive)) ?? { text: REPORT_USAGE }
   })
 
   on('session.send', async ($, e, next) => {

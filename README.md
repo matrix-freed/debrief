@@ -74,7 +74,7 @@ and walk me through the questions. Do not change any other settings.
 | `/debrief` | This session in numbers (tokens by model and loop, cost, time, agents) |
 | `/debrief tag <label>` | Marks a phase; the AAR timeline draws a band from here to the next tag |
 | `/debrief setup` | Builds your profile (language, lanes, thresholds) |
-| `/debrief aar [--from ISO] [--to ISO] [--cards PATH]` | Project AAR HTML for the current project, written under `<root>/aar/` |
+| `/debrief aar [--from ISO] [--to ISO] [--cards PATH] [--no-ledger]` | Project AAR HTML for the current project, written under `<root>/aar/`; `--no-ledger` keeps card improvements out of the ledger |
 | `/debrief backfill [--days N]` | Imports closed past sessions from transcripts (metadata only) |
 | `/debrief compact [--dry-run]` | Folds run files older than 30 days into monthly rollups and archives the raw files |
 | `/debrief ledger [list [--status S] \| set ID STATUS]` | Improvement ledger: proposed, applied, verified, dropped |
@@ -82,6 +82,13 @@ and walk me through the questions. Do not change any other settings.
 The plan, actual, gap and improvement cards are written by people (or a session you ask) in a
 small `cards.json`; debrief does not generate judgement text. Improvements get ledger IDs and a
 self-contained apply prompt with a copy button.
+
+When you run `/debrief aar` without `--cards`, the four cards are empty, so debrief has Claude ask
+you right away (a question dialog): write the cards from this session and regenerate, or keep the
+numbers only. If you choose the cards, Claude writes them to `<root>/aar/<project>/<stamp>.cards.json`
+beside the HTML and regenerates the same report with `--cards`. That cards file is the one piece of
+text debrief keeps besides tag labels: you approved it, it stays on this machine, and the run
+records still hold no prompts, answers or paths.
 
 ## Running the report program directly
 
@@ -122,6 +129,13 @@ P0 (API probe), P1 (recorder) and P2 (report program, backfill, project AAR) are
 - child sessions started for experiments carry no parent marker unless the parent sets `DEBRIEF_PARENT_SESSION`
 - the `--from/--to` window selects sessions but does not clip inside a session
 - open-session detection for backfill uses file idle time
+
+## Changes
+
+- 0.1.3: `/debrief aar` without `--cards` asks whether to write the review cards and regenerates;
+  `aar --no-ledger` is accepted.
+- 0.1.2: the project slug comes from the session root, not the shell's working directory.
+- 0.1.1: AAR read race fixed; `setup` asks the language first.
 
 ## License
 
@@ -203,13 +217,19 @@ debrief@debrief 를 설치한 뒤, 세션을 다시 시작하라고 알려 줘. 
 | `/debrief` | 이 세션의 숫자(모델·루프별 토큰, 비용, 시간, 에이전트) |
 | `/debrief tag <라벨>` | 페이즈 표시. AAR 타임라인에 여기서 다음 태그까지 띠로 그린다 |
 | `/debrief setup` | 프로필 만들기(언어, 레인, 임계값) |
-| `/debrief aar [--from ISO] [--to ISO] [--cards 경로]` | 현재 프로젝트의 AAR HTML. `<root>/aar/` 아래에 쓴다 |
+| `/debrief aar [--from ISO] [--to ISO] [--cards 경로] [--no-ledger]` | 현재 프로젝트의 AAR HTML. `<root>/aar/` 아래에 쓴다. `--no-ledger`는 카드의 개선 항목을 장부에 등록하지 않는다 |
 | `/debrief backfill [--days N]` | 지난 종료 세션을 transcript에서 가져온다(메타데이터만) |
 | `/debrief compact [--dry-run]` | 30일 지난 run 파일을 월별 rollup으로 접고 원본은 아카이브로 옮긴다 |
 | `/debrief ledger [list [--status S] \| set ID 상태]` | 개선 장부: proposed, applied, verified, dropped |
 
 계획·실제·차이·개선 카드는 사람(또는 요청받은 세션)이 작은 `cards.json`에 쓴다. debrief는 판정
 문장을 만들지 않는다. 개선 항목에는 장부 ID와 자기완결 적용 프롬프트, 복사 버튼이 붙는다.
+
+`--cards` 없이 `/debrief aar`를 실행하면 네 칸이 비므로, debrief는 Claude가 곧바로 질문 창으로
+묻게 한다: 이 세션 내용으로 카드를 써서 다시 생성할지, 숫자만 둘지. 카드를 고르면 Claude가 HTML 옆
+`<root>/aar/<프로젝트>/<stamp>.cards.json`에 카드를 쓰고 같은 리포트를 `--cards`로 다시 만든다. 이
+카드 파일은 태그 라벨 말고 debrief가 남기는 유일한 글이다: 사람이 승인한 산출물이고 이 기기에만
+남으며, run 기록에는 여전히 프롬프트·답·경로를 저장하지 않는다.
 
 ## 리포트 프로그램 직접 실행
 
@@ -248,6 +268,12 @@ P0(API 실측), P1(기록기), P2(리포트 프로그램, 백필, 프로젝트 A
 - 실험용으로 띄운 자식 세션은 부모가 `DEBRIEF_PARENT_SESSION`을 넘기지 않으면 부모 표식이 없다
 - `--from/--to` 창은 세션을 고를 뿐 세션 안을 자르지 않는다
 - 백필의 열린 세션 판정은 파일 유휴 시간 기준이다
+
+## 변경 내역
+
+- 0.1.3: `--cards` 없는 `/debrief aar`가 리뷰 카드 작성 여부를 묻고 다시 생성한다. `aar --no-ledger` 허용.
+- 0.1.2: 프로젝트 slug를 셸 작업 폴더가 아니라 세션 루트에서 만든다.
+- 0.1.1: AAR 읽기 경합 수정, `setup`이 언어를 먼저 묻는다.
 
 ## 라이선스
 

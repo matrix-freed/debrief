@@ -1,6 +1,6 @@
 {
   "name": "debrief",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Records metadata-only session telemetry (tokens per model and loop, turns, agents, friction) for project after-action reviews.",
   "author": {
     "name": "debrief"
