@@ -8,10 +8,12 @@ const TIMEOUTS: Record<string, number> = { aar: 600000, backfill: 600000, compac
 const SWITCHES = ['--dry-run', '--no-ledger']
 
 export type ReportAnswer = { text: string; context?: string[] }
-// What the person sees after an AAR that ran without cards, and the line the
-// plugin submits to start the turn that asks them (it shows under the plugin's name).
-export const CARDS_EMPTY = '리뷰 카드가 비어 있습니다 — 확인 창을 띄웁니다'
+// What the person sees after an AAR that ran without cards, the transcript
+// line if the asking turn could not be submitted, and the line the plugin
+// submits to start that turn (it shows under the plugin's name).
+export const CARDS_EMPTY = '리뷰 카드가 비어 있습니다 — 확인 창을 요청합니다'
 export const CARDS_EMPTY_QUIET = '리뷰 카드가 비어 있습니다 — Claude에게 카드 작성을 요청하거나 --cards로 다시 생성하세요'
+export const CARDS_FAILED = 'debrief: 확인 창을 띄우지 못했습니다 — Claude에게 카드 작성을 요청하거나 --cards로 다시 생성하세요'
 export const CARDS_PROMPT = 'AAR 리뷰 카드가 비어 있습니다. 직전 /debrief 메모대로 확인 창을 띄워 주세요.'
 
 // Quotes group a value that has spaces; backslashes and shell syntax are not interpreted.
@@ -147,6 +149,16 @@ export async function report($: EngineInterface, text: string, origin?: PromptOr
   // The engine refuses a submit from inside a command.run hook (it would wait
   // on the turn the hook holds), so a timer (clock.after) submits once the hook has returned;
   // the turn then starts when the session is idle, after this command's rows.
-  if (ask) $.clock.after(0, () => void $.prompt.submit({ text: CARDS_PROMPT }).catch(() => undefined))
+  // A submit that throws or is dropped starts no turn: say so in the transcript.
+  if (ask) {
+    $.clock.after(0, async () => {
+      try {
+        if ((await $.prompt.submit({ text: CARDS_PROMPT })).drop === undefined) return
+      } catch {
+        // reported below
+      }
+      $.ui.log(CARDS_FAILED)
+    })
+  }
   return { text: [...lines, ask ? CARDS_EMPTY : CARDS_EMPTY_QUIET].join('\n'), context }
 }

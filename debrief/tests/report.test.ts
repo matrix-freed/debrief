@@ -2,7 +2,7 @@ import { expect, test } from 'claude-code/testing'
 import type { Engine } from 'claude-code/testing'
 import type { On, ProcessRunInit } from 'claude-code'
 import { slugOf } from '../hooks/paths'
-import { CARDS_EMPTY, CARDS_EMPTY_QUIET, CARDS_PROMPT } from '../hooks/report'
+import { CARDS_EMPTY, CARDS_EMPTY_QUIET, CARDS_FAILED, CARDS_PROMPT } from '../hooks/report'
 import { CWD, PRESENT, ROOT, SLUG, command, install, start, turn, world } from './kit'
 import type { World } from './kit'
 
@@ -148,9 +148,11 @@ const asking = async ($: Engine, on: On, w: World = world(), env: Record<string,
   const calls: (readonly string[])[] = []
   const submits: { text: string; origin: unknown }[] = []
   on('process.run', (_, e) => { calls.push(e.argv); return { value: answer } })
+  const logs: string[] = []
   on('prompt.submit', (_, e) => { submits.push({ text: e.text, origin: e.origin }); return { text: e.text } })
+  on('ui.log', (_, e) => { logs.push(e.text); return { value: undefined } })
   await start($, w)
-  return { calls, submits, clock }
+  return { calls, submits, clock, logs }
 }
 
 
@@ -253,4 +255,36 @@ test('재생성 명령은 공백과 작은따옴표가 든 경로를 셸 따옴�
   const out = `'/data/it'\\''s here/aar/${SLUG}/2026-10-15-0907.html'`
   expect(note).toContain(`실행한다: py -3 /program/report aar --root '/data/it'\\''s here' --project ${SLUG} --config /config --out ${out} --cards '/data/it'\\''s here/aar/${SLUG}/2026-10-15-0907.cards.json'`)
   expect(note).toContain(`open ${out}`)
+})
+
+// Codex 1차: a submit that throws or is dropped leaves the person a visible line
+// with the manual way, not just the "asking" line.
+for (const [kind, answer] of [['예외', 'throw'], ['drop', 'drop']] as const) {
+  test(`질문 턴 제출이 ${kind}로 실패하면 사람에게 실패와 수동 방법을 알린다`, async ($, on) => {
+    const w = world()
+    const clock = install(on, w, ENV)
+    await clock.advance(NOW - clock.now())
+    const logs: string[] = []
+    on('process.run', () => ({ value: OK }))
+    on('prompt.submit', () => {
+      if (answer === 'throw') throw new Error('queue closed')
+      return { drop: 'blocked by a hook' }
+    })
+    on('ui.log', (_, e) => { logs.push(e.text); return { value: undefined } })
+    await start($, w)
+    const result = await command($, 'debrief', 'aar')
+    // The command answers before the submit settles: its line says it asked, not that a dialog is up.
+    expect(result.text).toBe(`RESULT {"output":"/data/result.html"}\n${CARDS_EMPTY}`)
+    expect(logs).toEqual([])
+    await clock.advance(1)
+    expect(logs).toEqual([CARDS_FAILED])
+  })
+}
+
+test('질문 턴 제출이 성공하면 실패 안내를 남기지 않는다', async ($, on) => {
+  const { clock, logs, submits } = await asking($, on)
+  await command($, 'debrief', 'aar')
+  await clock.advance(1)
+  expect(submits.length).toBe(1)
+  expect(logs).toEqual([])
 })

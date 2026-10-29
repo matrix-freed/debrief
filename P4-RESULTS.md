@@ -1,6 +1,6 @@
 # debrief P4 결과 — 빈 AAR 카드는 질문 창으로
 
-> **결론:** 할 일 5개를 모두 끝냈다. `--cards` 없이 AAR를 성공적으로 만들면 debrief가 모델 메모(질문 지시 + 그대로 실행할 재생성 명령)를 남기고, 질문 턴을 제출해 사람의 다음 입력 없이 AskUserQuestion이 뜨게 한다. `aar --no-ledger`를 허용한다. plugin 테스트 49건(기존 41 + 신규 8), Python 46건, tsc exit 0, validate 통과, precheck 0건. **실세션 확인은 아직 안 했다**(경계: `~/.claude` 쓰기·플러그인 설치 금지) — 4절.
+> **결론:** 할 일 5개를 모두 끝냈다. `--cards` 없이 AAR를 성공적으로 만들면 debrief가 모델 메모(질문 지시 + 그대로 실행할 재생성 명령)를 남기고, 질문 턴을 제출해 사람의 다음 입력 없이 AskUserQuestion이 뜨게 한다. `aar --no-ledger`를 허용한다. plugin 테스트 52건(기존 41 + 신규 11, Codex 1차 반영 3건 포함), Python 46건, tsc exit 0, validate 통과, precheck 0건. **실세션 확인은 아직 안 했다**(경계: `~/.claude` 쓰기·플러그인 설치 금지) — 4절.
 
 ## 1. 범위별 결과
 
@@ -30,7 +30,7 @@
 8. 공백·작은따옴표가 든 데이터 루트의 셸 따옴표, `py -3` 대체 실행기가 재생성 명령에 실림
 
 ```
-claude plugin test debrief                       # 49 pass (41 → 49)
+claude plugin test debrief                       # 52 pass (41 → 49 → Codex 1차 반영 후 52)
 cd debrief/tools/debrief_report && python3 -m unittest discover -s tests   # 46 OK (변경 없음)
 node <typescript 5.9>/bin/tsc -p <scratch tsconfig: debrief/tsconfig.json + reference/claude-code.d.ts>   # exit 0
 claude plugin validate debrief && claude plugin validate .   # 통과(아이콘 없음 경고는 기존)
@@ -47,7 +47,7 @@ python3 scripts/precheck.py                      # 0건
 ## 4. 확인 필요 (Oracle 실세션)
 
 1. **실세션 동작.** 0.1.3 설치 뒤 대화형 세션에서 `/debrief aar` → (가) 사람용 줄 (나) "debrief 플러그인이 보낸 메시지" 행 (다) 곧바로 질문 창 (라) ① 선택 시 `<stamp>.cards.json` 생성·재생성·`open`. 특히 **메모(`context`)가 제출된 턴보다 먼저 모델에 보이는지** — 테스트 엔진은 순서까지는 보지 않는다. 안 보이면 모델이 재생성 명령을 모른다.
-2. **실호스트의 `clock.after` 제출 허용.** 테스트 엔진은 허용했다. 실호스트가 거부하면 메모만 남는다(실패는 조용히 삼킨다 — 사람은 "확인 창을 띄웁니다" 문구만 보고 창이 안 뜰 수 있음).
+2. **실호스트의 `clock.after` 제출 허용.** 테스트 엔진은 허용했다. 실호스트가 거부하면(예외·`{ drop }`) 메모와 함께 대화에 실패 안내 한 줄이 남는다(6절). 그 줄이 실제로 보이는지도 확인.
 3. **출처 값.** 모델이 Skill/SlashCommand로 `/debrief aar`를 부를 때 `origin.kind`가 `composer`가 아닌지. `composer`로 오면 질문이 두 번 뜰 수 있다.
 4. **인자 없는 `/debrief`.** 코드상 이 경로는 `sessionSummary`만 돌려주고 리포트 프로그램을 실행하지 않는다(`register.ts` 632행). 10/29 실측의 `RESULT {"output": ".../aar/..."}`는 다른 경로(설치본 차이, 모델의 직접 실행 등)로 보이며 원인은 확인하지 못했다. 모델이 프로그램을 직접 돌린 경우에는 이번 변경으로도 질문이 나가지 않는다.
 5. **Windows.** 재생성 명령은 POSIX 따옴표다. Windows의 Bash 도구가 PowerShell이면 따옴표가 맞지 않을 수 있다(미확인).
@@ -56,3 +56,15 @@ python3 scripts/precheck.py                      # 0건
 ## 5. 경계
 
 레포 워크트리와 스크래치패드(타입 검사용 tsconfig, 임시 백업) 밖은 건드리지 않았다. `~/.claude` 쓰기·플러그인 설치·main 머지·push·태그 없음. 프로세스 종료 없음.
+
+## 6. Codex 1차 반영
+
+Codex 1차 리뷰: critical/high 0, [medium] 1 — 채택.
+
+| 지적 | 반영 |
+|---|---|
+| `report.ts:150` 타이머 안 `$.prompt.submit()`이 예외로 실패하거나 `{ drop }`을 돌려주면 질문 턴이 시작되지 않는데, 예외는 `.catch`로 삼키고 반환값은 보지 않아 사람에게는 "확인 창을 띄웁니다"만 남는다 | (1) 처음 줄을 시도에 맞게 "리뷰 카드가 비어 있습니다 — 확인 창을 요청합니다"로. (2) 타이머 안에서 결과를 받아 `drop`이 있거나 예외면 `$.ui.log`로 `debrief: 확인 창을 띄우지 못했습니다 — Claude에게 카드 작성을 요청하거나 --cards로 다시 생성하세요`를 남긴다. (3) `command.run`은 여전히 제출 결과를 기다리지 않는다 |
+
+- 알림 수단: 정본(`claude-code.d.ts` `ui`)에서 `$.ui.log`(대화에 흐린 시스템 줄로 남고 모델에는 가지 않음, -p·SDK 호스트는 `ui_log`로 받음)와 `$.ui.toast`(몇 초 뒤 사라짐)를 비교해 `ui.log`를 골랐다. 실패 안내는 나중에 다시 봐야 하는 정보라 사라지면 안 되기 때문이다.
+- 재현 테스트 먼저: 상수만 넣은 상태에서 신규 테스트 2건(예외·drop)이 `Expected [안내] / Received []`로 실패하는 것을 확인한 뒤 고쳤다. 성공 시 안내가 없다는 테스트 1건을 더했다. 세 테스트 모두 명령 응답 시점에는 안내가 없고(제출을 기다리지 않음) 타이머가 돈 뒤에만 생기는지 본다.
+- 반영 뒤: plugin 52 pass, Python 46 OK(변경 없음), tsc exit 0, validate 두 개 통과, precheck 0건.
